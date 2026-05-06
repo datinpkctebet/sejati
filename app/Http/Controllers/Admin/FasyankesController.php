@@ -228,7 +228,7 @@ class FasyankesController extends Controller
                 abort(403, 'Akses ditolak');
             }
             
-            $fullPath = storage_path('app/public/' . $decodedPath);
+            $fullPath = public_path('storage/' . $decodedPath);
             
             if (!file_exists($fullPath)) {
                 abort(404, 'File tidak ditemukan');
