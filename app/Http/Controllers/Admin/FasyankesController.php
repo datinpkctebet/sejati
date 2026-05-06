@@ -8,6 +8,7 @@ use App\Models\TrackingHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class FasyankesController extends Controller
 {
@@ -64,28 +65,48 @@ class FasyankesController extends Controller
             'jadwal_kunjungan' => 'required|date|after_or_equal:today',
             'keterangan'       => 'nullable|string|max:1000',
         ], [
-            'jadwal_kunjungan.required'          => 'Tanggal kunjungan wajib diisi.',
-            'jadwal_kunjungan.after_or_equal'    => 'Tanggal kunjungan tidak boleh sebelum hari ini.',
+            'jadwal_kunjungan.required'       => 'Tanggal kunjungan wajib diisi.',
+            'jadwal_kunjungan.after_or_equal' => 'Tanggal kunjungan tidak boleh sebelum hari ini.',
         ]);
-
+ 
         DB::beginTransaction();
         try {
-            $keterangan = $request->keterangan
-                ?? "Kunjungan dijadwalkan pada tanggal " . \Carbon\Carbon::parse($request->jadwal_kunjungan)->translatedFormat('d F Y') . ". Petugas Puskesmas Tebet akan datang ke lokasi fasyankes.";
-
+            $jadwalFmt  = Carbon::parse($request->jadwal_kunjungan)->translatedFormat('d F Y');
+            $keterangan = $request->filled('keterangan')
+                ? $request->keterangan
+                : "Kunjungan dijadwalkan pada tanggal {$jadwalFmt}. Petugas Puskesmas Tebet akan datang ke lokasi fasyankes.";
+ 
+            // 1. Update data pengajuan → langsung ke kunjungan_selesai
             $pengajuan->update([
                 'jadwal_kunjungan'    => $request->jadwal_kunjungan,
                 'tanggal_penjadwalan' => now(),
+                'status'              => 'kunjungan_selesai',
+                'tanggal_kunjungan'   => now(),
             ]);
-
-            // Update history keterangan di status proses_penjadwalan
+ 
+            // 2. Perbarui history proses_penjadwalan dengan jadwal + keterangan
             TrackingHistory::updateOrCreate(
                 ['pengajuan_id' => $pengajuan->id, 'status' => 'proses_penjadwalan'],
-                ['keterangan' => $keterangan, 'tanggal_status' => now()]
+                [
+                    'keterangan'     => $keterangan,
+                    'tanggal_status' => now(),
+                ]
             );
-
+ 
+            // 3. Buat history kunjungan_selesai (menunggu input hasil dari admin)
+            TrackingHistory::updateOrCreate(
+                ['pengajuan_id' => $pengajuan->id, 'status' => 'kunjungan_selesai'],
+                [
+                    'keterangan'     => "Kunjungan telah dilaksanakan pada {$jadwalFmt}. Menunggu input hasil kunjungan dari petugas Puskesmas.",
+                    'tanggal_status' => now(),
+                ]
+            );
+ 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Jadwal kunjungan berhasil disimpan.']);
+            return response()->json([
+                'success' => true,
+                'message' => "Jadwal kunjungan ({$jadwalFmt}) berhasil disimpan. Status diperbarui ke Kunjungan Selesai.",
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -98,38 +119,67 @@ class FasyankesController extends Controller
     public function updateKunjungan(Request $request, Pengajuan $pengajuan)
     {
         $request->validate([
-            'hasil_kunjungan'        => 'required|in:memenuhi_syarat,tidak_memenuhi_syarat',
-            'keterangan_kunjungan'   => 'nullable|string|max:2000',
+            'hasil_kunjungan'      => 'required|in:memenuhi_syarat,tidak_memenuhi_syarat',
+            'keterangan_kunjungan' => 'nullable|string|max:2000',
         ], [
             'hasil_kunjungan.required' => 'Hasil kunjungan wajib dipilih.',
         ]);
-
+ 
         DB::beginTransaction();
         try {
-            $hasilLabel = $request->hasil_kunjungan === 'memenuhi_syarat'
-                ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat';
-
-            $defaultKet = $request->hasil_kunjungan === 'memenuhi_syarat'
-                ? "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan {$hasilLabel}. Link draf PKS akan segera dikirimkan."
-                : "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan {$hasilLabel}. Mohon menindaklanjuti temuan dan mengajukan ulang setelah perbaikan selesai.";
-
-            $pengajuan->update([
-                'status'               => 'kunjungan_selesai',
+            $memenuhi = $request->hasil_kunjungan === 'memenuhi_syarat';
+ 
+            // Keterangan default sesuai hasil
+            if ($memenuhi) {
+                $defaultKet = "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan MEMENUHI SYARAT. Proses penandatanganan PKS akan segera dimulai.";
+            } else {
+                $defaultKet = "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan TIDAK MEMENUHI SYARAT. Mohon menindaklanjuti temuan dan mengajukan ulang setelah perbaikan selesai.";
+            }
+            $keterangan = $request->filled('keterangan_kunjungan')
+                ? $request->keterangan_kunjungan
+                : $defaultKet;
+ 
+            // Status pengajuan: naik jika memenuhi, tetap jika tidak
+            $newStatus = $memenuhi ? 'proses_ttd' : 'kunjungan_selesai';
+ 
+            $updateData = [
                 'hasil_kunjungan'      => $request->hasil_kunjungan,
-                'keterangan_kunjungan' => $request->keterangan_kunjungan ?? $defaultKet,
-                'tanggal_kunjungan'    => now(),
-            ]);
-
+                'keterangan_kunjungan' => $keterangan,
+                'status'               => $newStatus,
+            ];
+            if ($memenuhi) {
+                $updateData['tanggal_ttd'] = now();
+            }
+ 
+            $pengajuan->update($updateData);
+ 
+            // Update history kunjungan_selesai dengan hasil + keterangan lengkap
             TrackingHistory::updateOrCreate(
                 ['pengajuan_id' => $pengajuan->id, 'status' => 'kunjungan_selesai'],
                 [
-                    'keterangan'     => $request->keterangan_kunjungan ?? $defaultKet,
-                    'tanggal_status' => now(),
+                    'keterangan'     => $keterangan,
+                    'tanggal_status' => $pengajuan->tanggal_kunjungan ?? now(),
                 ]
             );
-
+ 
+            // Jika memenuhi syarat → buat history proses_ttd
+            if ($memenuhi) {
+                TrackingHistory::updateOrCreate(
+                    ['pengajuan_id' => $pengajuan->id, 'status' => 'proses_ttd'],
+                    [
+                        'keterangan'     => "Dokumen PKS sedang dalam proses penandatanganan oleh Kepala Puskesmas Tebet. Estimasi selesai maksimal 4 hari kerja.",
+                        'tanggal_status' => now(),
+                    ]
+                );
+            }
+ 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Hasil kunjungan berhasil disimpan.']);
+ 
+            $msg = $memenuhi
+                ? 'Hasil kunjungan disimpan. Status diperbarui ke Proses Tanda Tangan.'
+                : 'Hasil kunjungan disimpan. Status tetap Kunjungan Selesai (tidak memenuhi syarat).';
+ 
+            return response()->json(['success' => true, 'message' => $msg]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
