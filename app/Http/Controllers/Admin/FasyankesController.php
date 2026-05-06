@@ -7,6 +7,7 @@ use App\Models\Pengajuan;
 use App\Models\TrackingHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class FasyankesController extends Controller
 {
@@ -216,5 +217,29 @@ class FasyankesController extends Controller
                     ? $pengajuan->jadwal_kunjungan->translatedFormat('d F Y') : null,
             ]),
         ]);
+    }
+
+    public function downloadDokumen($path)
+    {
+        try {
+            $decodedPath = base64_decode($path);
+            
+            if (!str_starts_with($decodedPath, 'dokumen/')) {
+                abort(403, 'Akses ditolak');
+            }
+            
+            $fullPath = storage_path('app/public/' . $decodedPath);
+            
+            if (!file_exists($fullPath)) {
+                abort(404, 'File tidak ditemukan');
+            }
+            
+            return response()->file($fullPath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
+            ]);
+        } catch (\Exception $e) {
+            abort(500, 'Terjadi kesalahan saat membuka file');
+        }
     }
 }

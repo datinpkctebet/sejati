@@ -132,7 +132,7 @@
                         <i class="fas fa-file-pdf text-danger me-3 fs-5"></i>
                         <span class="text-gray-700 fw-semibold fs-7">{{ $label }}</span>
                     </div>
-                    <a href="{{ Storage::url($path) }}" target="_blank"
+                    <a href="{{ route('admin.fasyankes.dokumen.download', ['path' => base64_encode($path)]) }}" target="_blank"
                        class="btn btn-xs btn-light-primary px-3 py-1 fs-8">
                         <i class="fas fa-download fs-8 me-1"></i>Unduh
                     </a>
