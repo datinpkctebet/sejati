@@ -80,8 +80,6 @@ class FasyankesController extends Controller
             $pengajuan->update([
                 'jadwal_kunjungan'    => $request->jadwal_kunjungan,
                 'tanggal_penjadwalan' => now(),
-                'status'              => 'kunjungan_selesai',
-                'tanggal_kunjungan'   => now(),
             ]);
  
             // 2. Perbarui history proses_penjadwalan dengan jadwal + keterangan
@@ -93,19 +91,38 @@ class FasyankesController extends Controller
                 ]
             );
  
-            // 3. Buat history kunjungan_selesai (menunggu input hasil dari admin)
-            TrackingHistory::updateOrCreate(
-                ['pengajuan_id' => $pengajuan->id, 'status' => 'kunjungan_selesai'],
-                [
-                    'keterangan'     => "Kunjungan telah dilaksanakan pada {$jadwalFmt}. Menunggu input hasil kunjungan dari petugas Puskesmas.",
-                    'tanggal_status' => now(),
-                ]
-            );
- 
             DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => "Jadwal kunjungan ({$jadwalFmt}) berhasil disimpan. Status diperbarui ke Kunjungan Selesai.",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateLangsungKunjungan(Request $request, Pengajuan $pengajuan)
+    {
+        DB::beginTransaction();
+        try {
+            $pengajuan->update([
+                'tanggal_kunjungan' => now(),
+                'status'           => 'kunjungan_selesai',
+            ]);
+
+            TrackingHistory::updateOrCreate(
+                ['pengajuan_id' => $pengajuan->id, 'status' => 'kunjungan_selesai'],
+                [
+                    'keterangan'     => "Kunjungan telah dilaksanakan pada " . now()->translatedFormat('d F Y') . ". Menunggu input hasil kunjungan dari petugas Puskesmas.",
+                    'tanggal_status' => now(),
+                ]
+            );
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => "Kunjungan telah dilaksanakan. Status diperbarui ke Kunjungan Selesai.",
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -131,7 +148,7 @@ class FasyankesController extends Controller
  
             // Keterangan default sesuai hasil
             if ($memenuhi) {
-                $defaultKet = "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan MEMENUHI SYARAT. Proses penandatanganan PKS akan segera dimulai.";
+                $defaultKet = "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan MEMENUHI SYARAT. Mohon Unduh Template Dokumen PKS pada link berikut: <a href='https://bit.ly/template-dokumen-pks' target='_blank'>[Download Template PKS]</a>. Setelah itu, isi dokumen PKS dan kirimkan kembali ke Email Puskesmas <a href='#'>puskesmas.tebet@jakarta.go.id</a>";
             } else {
                 $defaultKet = "Kunjungan telah selesai dilaksanakan. Fasyankes dinyatakan TIDAK MEMENUHI SYARAT. Mohon menindaklanjuti temuan dan mengajukan ulang setelah perbaikan selesai.";
             }

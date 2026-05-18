@@ -173,6 +173,14 @@
                                         title="Jadwalkan Kunjungan">
                                     <i class="fas fa-calendar-plus fs-7"></i> Jadwalkan
                                 </button>
+                                <button type="button"
+                                        class="btn btn-sm btn-info btn-aksi"
+                                        data-id="{{ $p->id }}"
+                                        data-action="langsungKunjungan"
+                                        data-bs-toggle="tooltip"
+                                        title="Input Hasil Kunjungan">
+                                    <i class="fas fa-clipboard-check fs-7"></i> Lakukan Kunjungan
+                                </button>
                                 @endif
 
                                 @if($p->status === 'kunjungan_selesai' && !$p->hasil_kunjungan)
@@ -263,6 +271,7 @@
 const ROUTES = {
     getData:       (id) => `/admin/fasyankes/${id}/data`,
     penjadwalan:   (id) => `/admin/fasyankes/${id}/penjadwalan`,
+    langsungKunjungan: (id) => `/admin/fasyankes/${id}/langsungKunjungan`,
     kunjungan:     (id) => `/admin/fasyankes/${id}/kunjungan`,
     ttd:           (id) => `/admin/fasyankes/${id}/ttd`,
     selesai:       (id) => `/admin/fasyankes/${id}/selesai`,
@@ -286,6 +295,23 @@ $(document).on('click', '.btn-aksi', function () {
             $('#pj_keterangan').val('');
             $('#modal_penjadwalan').modal('show');
 
+        } else if (action === 'langsungKunjungan') {
+            $.ajax({
+                url: ROUTES.langsungKunjungan(currentId),
+                type: 'PATCH',
+                data: { hasil_kunjungan: null },
+                success(res) {
+                    if (res.success) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 2000, showConfirmButton: false })
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                    }
+                },
+                error(xhr) {
+                    Swal.fire('Error', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                }
+            });
         } else if (action === 'kunjungan') {
             $('#kj_nama_fasyankes').text(p.nama_fasyankes);
             $('#kj_nomor_tiket').text(p.nomor_tiket);
