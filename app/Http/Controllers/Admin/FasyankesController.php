@@ -157,12 +157,12 @@ class FasyankesController extends Controller
                 : $defaultKet;
  
             // Status pengajuan: naik jika memenuhi, tetap jika tidak
-            $newStatus = $memenuhi ? 'proses_ttd' : 'kunjungan_selesai';
+            // $newStatus = $memenuhi ? 'proses_ttd' : 'kunjungan_selesai';
  
             $updateData = [
                 'hasil_kunjungan'      => $request->hasil_kunjungan,
                 'keterangan_kunjungan' => $keterangan,
-                'status'               => $newStatus,
+                // 'status'               => $newStatus,
             ];
             if ($memenuhi) {
                 $updateData['tanggal_ttd'] = now();
@@ -202,6 +202,34 @@ class FasyankesController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    // public function updateDokumenDiterima(Request $request, Pengajuan $pengajuan)
+    // {
+    //     DB::beginTransaction();
+    //     try {
+    //         $pengajuan->update([
+    //             'tanggal_kunjungan' => now(),
+    //             'status'           => 'proses_ttd',
+    //         ]);
+
+    //         TrackingHistory::updateOrCreate(
+    //             ['pengajuan_id' => $pengajuan->id, 'status' => 'proses_ttd'],
+    //             [
+    //                 'keterangan'     => "Dokumen PKS telah diterima dan sedang dalam proses penandatanganan oleh Kepala Puskesmas Tebet. Estimasi selesai maksimal 4 hari kerja.",
+    //                 'tanggal_status' => now(),
+    //             ]
+    //         );
+
+    //         DB::commit();
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => "Dokumen telah diterima. Status diperbarui ke Proses Tanda Tangan.",
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    //     }
+    // }
 
     /**
      * Update status: proses_ttd → tandatangani PKS

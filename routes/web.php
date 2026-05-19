@@ -28,6 +28,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/fasyankes/{pengajuan}/penjadwalan', [FasyankesController::class, 'updatePenjadwalan'])->name('fasyankes.penjadwalan');
         Route::patch('/fasyankes/{pengajuan}/langsungKunjungan',   [FasyankesController::class, 'updateLangsungKunjungan'])->name('fasyankes.langsung_kunjungan');
         Route::patch('/fasyankes/{pengajuan}/kunjungan',   [FasyankesController::class, 'updateKunjungan'])->name('fasyankes.kunjungan');
+        // Route::patch('/fasyankes/{pengajuan}/dokumenDiterima', [FasyankesController::class, 'updateDokumenDiterima'])->name('fasyankes.dokumen_diterima');
         Route::patch('/fasyankes/{pengajuan}/ttd',         [FasyankesController::class, 'updateTtd'])->name('fasyankes.ttd');
         Route::patch('/fasyankes/{pengajuan}/selesai',     [FasyankesController::class, 'updateSelesai'])->name('fasyankes.selesai');
         Route::get('/fasyankes/dokumen/download/{path}', [FasyankesController::class, 'downloadDokumen'])->name('fasyankes.dokumen.download');

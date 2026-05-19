@@ -192,11 +192,14 @@
                                         title="Input Hasil Kunjungan">
                                     <i class="fas fa-clipboard-check fs-7"></i> Hasil
                                 </button>
-                                <a href="{{ $p->whatsapp_url }}" target="_blank"
+                                @endif
+
+                                @if($p->status === 'kunjungan_selesai' && $p->hasil_kunjungan === 'tidak_memenuhi_syarat')
+                                <!-- <a href="{{ $p->whatsapp_url }}" target="_blank"
                                    class="btn btn-sm btn-light-success"
                                    data-bs-toggle="tooltip" title="Info via WhatsApp">
                                     <i class="fab fa-whatsapp fs-5"></i>
-                                </a>
+                                </a> -->
                                 @endif
 
                                 @if($p->status === 'kunjungan_selesai' && $p->hasil_kunjungan === 'memenuhi_syarat')
@@ -206,7 +209,7 @@
                                         data-action="ttd"
                                         data-bs-toggle="tooltip"
                                         title="Proses Tanda Tangan PKS">
-                                    <i class="fas fa-pen-fancy fs-7"></i> Proses TTD
+                                    <i class="fas fa-pen-fancy fs-7"></i> Dokumen Diterima
                                 </button>
                                 @endif
 
@@ -219,14 +222,14 @@
                                         title="Tandai Selesai">
                                     <i class="fas fa-check fs-7"></i> Selesai
                                 </button>
+                                @endif
+                                
+                                {{-- Detail selalu ada --}}
                                 <a href="{{ $p->whatsapp_url }}" target="_blank"
                                    class="btn btn-sm btn-light-success"
                                    data-bs-toggle="tooltip" title="Info via WhatsApp">
                                     <i class="fab fa-whatsapp fs-5"></i>
                                 </a>
-                                @endif
-
-                                {{-- Detail selalu ada --}}
                                 <a href="{{ route('admin.fasyankes.show', $p) }}"
                                    class="btn btn-sm btn-light-dark"
                                    data-bs-toggle="tooltip" title="Lihat Detail">

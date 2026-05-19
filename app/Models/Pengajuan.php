@@ -28,6 +28,8 @@ class Pengajuan extends Model
         'sertifikat_kalibrasi_dokumen',
         'status',
         'catatan',
+        'hasil_kunjungan',
+        'keterangan_kunjungan',
         'tanggal_pengajuan',
         'tanggal_penjadwalan',
         'tanggal_kunjungan',
