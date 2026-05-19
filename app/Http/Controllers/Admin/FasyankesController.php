@@ -148,7 +148,7 @@ class FasyankesController extends Controller
  
             // Keterangan default sesuai hasil
             if ($memenuhi) {
-                $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-success fs-9'>MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon Unduh Template Dokumen PKS pada link berikut: <a href='https://bit.ly/template-dokumen-pks' target='_blank'>[Download Template PKS]</a>. Setelah itu, isi dokumen PKS dan kirimkan kembali ke Email Puskesmas <a href='#'>puskesmas.tebet@jakarta.go.id</a>";
+                $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-success fs-9'>MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon Unduh Template Dokumen PKS pada link berikut: <a href='https://bit.ly/template-dokumen-pks-rev' target='_blank'>[Download Template PKS]</a>. Setelah itu, isi dokumen PKS dan kirimkan kembali ke Email Puskesmas <a href='#'>puskesmas.tebet@jakarta.go.id</a>";
             } else {
                 $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-danger fs-9'>TIDAK MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon menindaklanjuti temuan dan mengajukan ulang setelah perbaikan selesai.";
             }
