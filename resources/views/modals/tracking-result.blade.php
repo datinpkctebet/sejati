@@ -64,7 +64,7 @@
                     {{-- Progress Bar --}}
                     <div class="mb-8">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bolder text-gray-800 fs-6">Progress Pengajuan</span>
+                            <span class="fw-bolder text-gray-800 fs-6">Proses Pengajuan</span>
                             <span id="tr_progress_text" class="fw-bold text-primary fs-6"></span>
                         </div>
                         <div class="progress h-12px rounded">

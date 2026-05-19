@@ -192,6 +192,11 @@
                                         title="Input Hasil Kunjungan">
                                     <i class="fas fa-clipboard-check fs-7"></i> Hasil
                                 </button>
+                                <a href="{{ $p->whatsapp_url }}" target="_blank"
+                                   class="btn btn-sm btn-light-success"
+                                   data-bs-toggle="tooltip" title="Info via WhatsApp">
+                                    <i class="fab fa-whatsapp fs-5"></i>
+                                </a>
                                 @endif
 
                                 @if($p->status === 'kunjungan_selesai' && $p->hasil_kunjungan === 'memenuhi_syarat')

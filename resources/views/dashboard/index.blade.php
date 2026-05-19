@@ -92,7 +92,7 @@
                                  data-kt-countup-value="{{ $stats['optik'] }}">0</div>
                         </div>
 
-                        {{-- Apotik --}}
+                        {{-- Apotek --}}
                         <div class="col bg-light-info px-6 py-8 rounded-2 me-7 mb-7">
                             <span class="svg-icon svg-icon-3x svg-icon-info d-block my-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -102,7 +102,7 @@
                                     <rect x="3" y="13" width="3" height="6" rx="1.5" fill="black"/>
                                 </svg>
                             </span>
-                            <a href="#" class="text-info fw-bold fs-6">Apotik</a>
+                            <a href="#" class="text-info fw-bold fs-6">Apotek</a>
                             <div class="fs-2 fw-bolder"
                                  data-kt-countup="true"
                                  data-kt-countup-value="{{ $stats['apotek'] }}">0</div>
