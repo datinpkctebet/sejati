@@ -148,7 +148,7 @@ class FasyankesController extends Controller
  
             // Keterangan default sesuai hasil
             if ($memenuhi) {
-                $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-success fs-9'>MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon Unduh Template Dokumen PKS pada link berikut: <a href='https://bit.ly/template-dokumen-pks-rev' target='_blank'>[Download Template PKS]</a>. Setelah itu, isi dokumen PKS dan kirimkan kembali ke Email Puskesmas <a href='#'>puskesmas.tebet@jakarta.go.id</a>";
+                $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-success fs-9'>MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon Unduh Template Dokumen PKS pada link berikut: <a href='" . route('fasyankes.download.template', base64_encode('templates/Template_PKS.docx')) . "'>[Download Template PKS]</a>. Setelah itu, isi dokumen PKS dan kirimkan kembali ke Email Puskesmas <a href='#'>puskesmas.tebet@jakarta.go.id</a>";
             } else {
                 $defaultKet = "Fasyankes dinyatakan <span class='badge badge-light-danger fs-9'>TIDAK MEMENUHI SYARAT</span>. <br> Kunjungan telah selesai dilaksanakan. Mohon menindaklanjuti temuan dan mengajukan ulang setelah perbaikan selesai.";
             }
@@ -331,6 +331,30 @@ class FasyankesController extends Controller
             
             return response()->file($fullPath, [
                 'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
+            ]);
+        } catch (\Exception $e) {
+            abort(500, 'Terjadi kesalahan saat membuka file');
+        }
+    }
+
+    public function downloadTemplate($path)
+    {
+        try {
+            $decodedPath = base64_decode($path);
+            
+            if (!str_starts_with($decodedPath, 'templates/')) {
+                abort(403, 'Akses ditolak');
+            }
+            
+            $fullPath = public_path('storage/' . $decodedPath);
+            
+            if (!file_exists($fullPath)) {
+                abort(404, 'File tidak ditemukan');
+            }
+            
+            return response()->file($fullPath, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
             ]);
         } catch (\Exception $e) {

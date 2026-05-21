@@ -34,3 +34,4 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/fasyankes/dokumen/download/{path}', [FasyankesController::class, 'downloadDokumen'])->name('fasyankes.dokumen.download');
     });
 });
+Route::get('/download-template/{path}', [FasyankesController::class, 'downloadTemplate'])->name('fasyankes.download.template');
