@@ -7,10 +7,10 @@ use App\Http\Controllers\Admin\FasyankesController;
 use Illuminate\Support\Facades\Route;
 
 // ── Public (Fasyankes) ────────────────────────────────────────────────────────
-Route::get('/', function () {
-    return view('maintenance');
-})->name('home');
-// Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Route::get('/', function () {
+//     return view('maintenance');
+// })->name('home');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::post('/pengajuan', [PengajuanController::class, 'store'])->name('pengajuan.store');
 Route::post('/tracking',  [PengajuanController::class, 'tracking'])->name('pengajuan.tracking');
 
