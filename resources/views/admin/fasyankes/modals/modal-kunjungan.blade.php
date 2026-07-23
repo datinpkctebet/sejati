@@ -135,10 +135,21 @@
 
 @push('scripts')
 <script>
-$('input[name="hasil_kunjungan"]').on('change', function () {
-    const val = $(this).val();
-    $('#info_memenuhi').toggleClass('d-none', val !== 'memenuhi_syarat');
-    $('#info_tidak_memenuhi').toggleClass('d-none', val !== 'tidak_memenuhi_syarat');
+$(function () {
+    const $keterangan = $('#kj_keterangan');
+
+    function syncKeteranganState() {
+        const val = $('input[name="hasil_kunjungan"]:checked').val();
+        const isMemenuhi = val === 'memenuhi_syarat';
+
+        $('#info_memenuhi').toggleClass('d-none', !isMemenuhi);
+        $('#info_tidak_memenuhi').toggleClass('d-none', val !== 'tidak_memenuhi_syarat');
+
+        $keterangan.prop('disabled', isMemenuhi);
+    }
+
+    $('input[name="hasil_kunjungan"]').on('change', syncKeteranganState);
+    syncKeteranganState();
 });
 </script>
 @endpush
